@@ -55,7 +55,7 @@ handleNewJob = (robot, msg, pattern, message) ->
   catch error
     msg.send "Error caught parsing crontab pattern: #{error}. See http://crontab.org/ for the syntax"
 
-      updateJobTimezone = (robot, id, timezone) ->
+updateJobTimezone = (robot, id, timezone) ->
   if JOBS[id]
     JOBS[id].stop()
     JOBS[id].timezone = timezone
