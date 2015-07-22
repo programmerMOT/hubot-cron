@@ -5,6 +5,7 @@
 #   hubot new job "<crontab format>" <message> - Schedule a cron job to say something
 #   hubot new job <crontab format> "<message>" - Ditto
 #   hubot new job <crontab format> say <message> - Ditto
+#   hubot new job "<crontab format>" $<message> - Schedule a cron job to execute hubot command
 #   hubot list jobs - List current cron jobs
 #   hubot remove job <id> - remove job
 #   hubot remove job with message <message> - remove with message
@@ -12,6 +13,7 @@
 # Author:
 #   miyagawa
 
+{TextMessage} = require 'hubot'
 cronJob = require('cron').CronJob
 
 JOBS = {}
@@ -53,7 +55,7 @@ handleNewJob = (robot, msg, pattern, message) ->
   catch error
     msg.send "Error caught parsing crontab pattern: #{error}. See http://crontab.org/ for the syntax"
 
-updateJobTimezone = (robot, id, timezone) ->
+      updateJobTimezone = (robot, id, timezone) ->
   if JOBS[id]
     JOBS[id].stop()
     JOBS[id].timezone = timezone
@@ -132,7 +134,7 @@ class Job
   start: (robot) ->
     @cronjob = new cronJob(@pattern, =>
       @sendMessage robot
-    , null, false, @timezone)
+      , null, false, @timezone)
     @cronjob.start()
 
   stop: ->
@@ -143,5 +145,8 @@ class Job
 
   sendMessage: (robot) ->
     envelope = user: @user, room: @user.room
-    robot.send envelope, @message
+    if @message.indexOf('$') is 0
+      robot.receive new TextMessage(@user, @message[1..-1])
+    else
+      robot.send envelope, @message
 
